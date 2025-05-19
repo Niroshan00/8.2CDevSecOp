@@ -37,5 +37,17 @@ pipeline {
                 echo "Building..."
             }
         }
+        stage('Build') {
+            steps {
+                echo "Building..."
+            }
+            post {
+                success {
+                    mail to: 'aaryanniroshan@gmail.com',
+                         subject: 'Build Status Email',
+                         body: 'Build Was Successful'
+                }
+            }
+        }
     }
 }
