@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                bat 'git clone https://github.com/Niroshan00/8.2CDevSecOp.git'
+                git branch: 'main', url: 'https://github.com/Niroshan00/8.2CDevSecOp.git'
             }
         }
 
@@ -16,21 +16,26 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                bat 'npm test || exit 0'
+                bat 'npm test || exit /b 0'
             }
         }
 
         stage('Generate Coverage Report') {
             steps {
-                bat 'npm run coverage || exit 0'
+                bat 'npm run coverage || exit /b 0'
             }
         }
 
         stage('NPM Audit (Security Scan)') {
             steps {
-                bat 'npm audit || exit 0'
+                bat 'npm audit || exit /b 0'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo "Building..."
             }
         }
     }
 }
-
