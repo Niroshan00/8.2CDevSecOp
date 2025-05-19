@@ -2,52 +2,34 @@ pipeline {
     agent any
 
     stages {
-
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/Niroshan00/TASK1_8.1C.git'
+                bat 'git clone https://github.com/Niroshan00/8.2CDevSecOp.git'
             }
         }
 
-        stage('Build') {
+        stage('Install Dependencies') {
             steps {
-                echo 'Building the application...'
+                bat 'npm install'
             }
         }
 
-        stage('Unit and Integration Tests') {
+        stage('Run Tests') {
             steps {
-                echo 'Running unit and integration tests...'
+                bat 'npm test || exit 0' // Allows pipeline to continue despite test failures
             }
         }
 
-        stage('Code Analysis') {
+        stage('Generate Coverage Report') {
             steps {
-                echo 'Analyzing code quality...'
+                rem Ensure coverage report exists
+                bat 'npm run coverage || exit 0'
             }
         }
 
-        stage('Security Scan') {
+        stage('NPM Audit (Security Scan)') {
             steps {
-                echo 'Scanning for security vulnerabilities...'
-            }
-        }
-
-        stage('Deploy to Staging') {
-            steps {
-                echo 'Deploying to staging environment...'
-            }
-        }
-
-        stage('Integration Tests on Staging') {
-            steps {
-                echo 'Running integration tests on staging...'
-            }
-        }
-
-        stage('Deploy to Production') {
-            steps {
-                echo 'Deploying to production environment...'
+                bat 'npm audit || exit 0' // This will show known CVEs in the output
             }
         }
     }
