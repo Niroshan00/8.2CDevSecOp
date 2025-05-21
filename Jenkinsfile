@@ -1,44 +1,65 @@
+def testStatus = 'UNKNOWN'
+def scanStatus = 'UNKNOWN'
+
 pipeline {
     agent any
+
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/Niroshan00/8.2CDevSecOp.git'
+                git branch: 'main', url: 'https://github.com/Niroshan00/8.2CDevSecOp.git'
             }
         }
+
         stage('Install Dependencies') {
             steps {
                 bat 'npm install'
             }
         }
+
         stage('Run Tests') {
             steps {
-                // Continue on test failures
-                bat 'npm test || exit /b 0'
+                script {
+                    def result = bat(script: 'npm test', returnStatus: true)
+                    testStatus = (result == 0) ? 'SUCCESS' : 'FAILURE'
+                }
             }
         }
+
         stage('Generate Coverage Report') {
             steps {
-                // Ensure coverage report exists
                 bat 'npm run coverage || exit /b 0'
             }
         }
+
         stage('NPM Audit (Security Scan)') {
             steps {
-                // Show known CVEs without failing the build
-                bat 'npm audit || exit /b 0'
+                script {
+                    def result = bat(script: 'npm audit', returnStatus: true)
+                    scanStatus = (result == 0) ? 'SUCCESS' : 'FAILURE'
+                }
             }
         }
-        stage('Build') {
+
+        stage('Email Notification') {
             steps {
-                echo "Building..."
-            }
-            post {
-                success {
-                    mail to: 'aaryanniroshan@gmail.com',
-                         subject: 'Build Status Email',
-                         body: 'Build Was Successful'
+                script {
+                    def message = """\
+Build Completed
+
+Stage Results:
+- Run Tests: ${testStatus}
+- Security Scan: ${scanStatus}
+
+The full console log is attached.
+"""
+
+                    emailext(
+                        to: 'aaryanniroshan@gmail.com',
+                        subject: "Build Summary – Tests: ${testStatus}, Scan: ${scanStatus}",
+                        body: message,
+                        attachLog: true
+                    )
                 }
             }
         }
